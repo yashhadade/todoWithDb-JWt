@@ -59,7 +59,6 @@ if(!errorThrow){
 
 })
 
-
 app.post("/signIn",async function(req,res){
     const email=req.body.email;
     const password=req.body.password;
@@ -88,6 +87,7 @@ app.post("/signIn",async function(req,res){
         })
     }
 })
+
 app.get("/getAlluser",async function(req,res){
     try{
         const Users= await UserModel.find();
@@ -109,6 +109,7 @@ app.get("/getAlluser",async function(req,res){
     }
 
 })
+
 app.post("/create/todo",auth, async function(req,res){
     const userId=req.userId;
     const title=req.body.title;
@@ -117,6 +118,7 @@ app.post("/create/todo",auth, async function(req,res){
         userId:userId,
         title:title,
         done:false,
+        isDeleted:false,
     })
     res.json({
         message:"Todo created",
@@ -129,11 +131,13 @@ app.get("/users/notDone/todo",auth,async function(req,res){
     const todos=await TodoModel.find({
         userId:userId,
         done:false,
+        isDeleted:false,
     })
     res.json({
         todos:todos
     })
 })
+
 app.get("/users/done/todo",auth,async function(req,res){
     const userId=req.userId;
     const todos=await TodoModel.find({
@@ -163,11 +167,52 @@ app.put('/isCompleted/todo/:todoId',auth, async function(req,res){
         console.error(err);
         res.status(500).json({message:'Server error'});
     }
-    // console.log(tododone);
-    // res.json({
-    //     done:tododone.done
-    // })
+    
 })
+
+app.put("/update/todo/:todoId",auth,async function(req,res){
+    const todoId=req.params.todoId;
+    const title=req.body.title;
+    if(!title){
+        return res.status(400).json({ message: "Title is required" });
+    }
+    try {
+        const todoUpdate= await TodoModel.findByIdAndUpdate(
+            todoId,
+            {title:title}
+        )
+        if(!todoUpdate){
+            return res.status(404).json({message:"Todo not Found"})
+        }
+        res.json({
+            message:"todo is been updated"
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message:"Server Error"})
+    }
+})
+
+app.delete("/deleted/todo/:todoId",auth,async function(req,res){
+    const todoId=req.params.todoId;
+    try {
+        const todoDeleted= await TodoModel.findByIdAndUpdate(
+            todoId,
+            {isDeleted:true}
+        )
+        if(!todoDeleted){
+            return res.status(404).json({message:"Todo is not Found"})
+        }
+        res.json({
+            message:"Todo Deleted Sucessfully"
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message:"Server Error"})
+
+    }
+})
+
 
 
 app.listen(3000,function(){
