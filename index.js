@@ -149,6 +149,25 @@ app.get("/users/done/todo",auth,async function(req,res){
     })
 })
 
+app.get("/user/one/todo/:todoId",auth,async function(req,res){
+    const todoId=req.params.todoId;
+    try {
+        const todoOne= await TodoModel.findOne(
+            todoId,
+        )
+        if(!todoOne){
+            return res.status(404).message({message:"Todo not Found"});
+        }
+        res.json({
+            todoOne:todoOne,
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Server error",
+        })
+    }
+})
+
 app.put('/isCompleted/todo/:todoId',auth, async function(req,res){
     const todoId=req.params.todoId;
     
