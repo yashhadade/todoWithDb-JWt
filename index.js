@@ -88,15 +88,35 @@ app.post("/signIn",async function(req,res){
         })
     }
 })
+app.get("/getAlluser",async function(req,res){
+    try{
+        const Users= await UserModel.find();
 
+        if(Users){
+            res.json({
+                Users:Users,
+            });
+        }else{
+            res.json({
+                message:"No Users Present"
+            });
+        }
+    }catch(error){
+        res.status(500).json({
+            message:"Error Retrieving",
+            error:error.message
+        });
+    }
+
+})
 app.post("/create/todo",auth, async function(req,res){
     const userId=req.userId;
     const title=req.body.title;
-    const done=req.body.done;
+    // const done=req.body.done;
     await TodoModel.create({
-        userId,
-        title,
-        done,
+        userId:userId,
+        title:title,
+        done:false,
     })
     res.json({
         message:"Todo created",
@@ -104,16 +124,50 @@ app.post("/create/todo",auth, async function(req,res){
 
 })
 
-app.get("/all/todo",auth,async function(req,res){
+app.get("/users/notDone/todo",auth,async function(req,res){
     const userId=req.userId;
     const todos=await TodoModel.find({
         userId:userId,
+        done:false,
+    })
+    res.json({
+        todos:todos
+    })
+})
+app.get("/users/done/todo",auth,async function(req,res){
+    const userId=req.userId;
+    const todos=await TodoModel.find({
+        userId:userId,
+        done:true,
     })
     res.json({
         todos:todos
     })
 })
 
+app.put('/isCompleted/todo/:todoId',auth, async function(req,res){
+    const todoId=req.params.todoId;
+    
+    try{const tododone= await TodoModel.findByIdAndUpdate(
+        todoId,
+        {done:true},
+    );
+    if (!tododone) {
+        return res.status(404).json({ message: 'Todo not found' });
+    }
+    res.json({
+        message:'Todo Updated SucessFully',
+        // todo:tododone
+    })
+    }catch(err){
+        console.error(err);
+        res.status(500).json({message:'Server error'});
+    }
+    // console.log(tododone);
+    // res.json({
+    //     done:tododone.done
+    // })
+})
 
 
 app.listen(3000,function(){
