@@ -109,6 +109,65 @@ app.get("/getAlluser",async function(req,res){
     }
 
 })
+app.put("/update/user/:userId", async function(req,res){
+    const requireBody=z.object({
+        email:z.string().min(5).max(100).email(),
+        name:z.string().min(4).max(100),
+        password:z.string().min(8).max(100)
+    })
+    const parseData=requireBody.safeParse(req.body)
+    if(!parseData.success){
+        res.json({
+            message:"Please Check Your Email Password and userName",
+            error:parseData.error
+        })
+        return
+    }
+    const userId=req.params.userId;
+    const name=req.body.name;
+    const email=req.body.email;
+    const password=req.body.password;
+    const hashPassword=await bcrypt.hash(password,5);
+    console.log(hashPassword);
+    try {
+        const UserUpdate= await UserModel.findOneAndUpdate(
+            userId,
+            {name:name},
+            {email:email},
+            {password:hashPassword}
+        )
+        if(!UserUpdate){
+            return res.status(404).json({message:"User not Found"})
+        }
+        res.json({
+            message:"User Updated Sucessfully"
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Internal server error"
+        })
+    }
+})
+app.get("/getOne/user/:userId", async function (req,res) {
+    const userId=req.params.userId;
+    try {
+        const OneUser= await UserModel.findOne({
+            _id:userId
+        })
+        if(!OneUser){
+           return res.status(404).json({
+                message:"User Not Fund"
+            })
+        }
+        res.json({
+            user:OneUser
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"Interval server Error"
+        })
+    }
+})
 
 app.post("/create/todo",auth, async function(req,res){
     const userId=req.userId;
