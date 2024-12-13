@@ -10,7 +10,11 @@ const Todo=new Schema({
     title:String,
     done:Boolean,
     isDeleted:Boolean,
-    userId:ObjectId
+    userId:{
+        type:ObjectId,
+        ref:'user',
+        require: true
+    }
 })
 
 const UserModel =mongoose.model("user",User)

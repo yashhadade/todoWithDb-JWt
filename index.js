@@ -184,7 +184,26 @@ app.post("/create/todo",auth, async function(req,res){
     })
 
 })
-
+app.get("/allTodo" ,async function(req,res){
+    try {
+        const todo= await TodoModel.find({
+            done:false
+        })
+        .populate('userId');
+        if(!todo){
+            return res.status(403).json({message:"Todo is Not Present"});
+        }
+        res.json({
+            todo:todo,
+        })
+    } catch (error) {
+        res.status(500).json({
+            message:"intrenal server Error",
+            error:error,
+        })
+    }
+    
+})
 app.get("/users/notDone/todo",auth,async function(req,res){
     const userId=req.userId;
     const todos=await TodoModel.find({
@@ -192,6 +211,8 @@ app.get("/users/notDone/todo",auth,async function(req,res){
         done:false,
         isDeleted:false,
     })
+    .populate("userId")
+    
     res.json({
         todos:todos
     })
